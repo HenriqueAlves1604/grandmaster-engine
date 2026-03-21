@@ -1,0 +1,7 @@
+# Handle line endings automatically
+* text=auto
+
+# Force LF for shell scripts and specific config files
+*.sh text eol=lf
+*.json text eol=lf
+*.ts text eol=lf
