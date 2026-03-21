@@ -7,8 +7,9 @@
 
     // Environment Settings
     "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "esnext",
-    "types": [],
+    "types": ["node"],
 
     // Other Outputs
     "sourceMap": true,
