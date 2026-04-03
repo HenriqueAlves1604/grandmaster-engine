@@ -21,7 +21,7 @@ export class RegisterPlayerUseCase {
     this.passwordHasher = passwordHasher;
   }
 
-  public async execute(request: RegisterPlayerRequestDTO): Promise<void> {
+  public async execute(request: RegisterPlayerRequestDTO): Promise<Player> {
     const emailVo = Email.create(request.email);
     const passwordVo = Password.create(request.rawPassword);
 
@@ -49,5 +49,7 @@ export class RegisterPlayerUseCase {
     const playerStats = PlayerStats.create(playerSnapshot.id);
 
     await this.playerRepository.save(player, playerStats);
+
+    return player;
   }
 }
