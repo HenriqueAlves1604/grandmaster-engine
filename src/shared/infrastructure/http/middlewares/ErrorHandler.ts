@@ -1,3 +1,4 @@
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError.js';
 import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../../../errors/AppError.js';
 import { ConflictError } from '../../../errors/ConflictError.js';
@@ -8,6 +9,11 @@ import { ValidationError } from '../../../errors/ValidationError.js';
 export function errorHandler(error: Error, req: Request, res: Response, next: NextFunction): void {
   if (error instanceof ValidationError) {
     res.status(400).json({ error: error.name, message: error.message });
+    return;
+  }
+
+  if (error instanceof UnauthorizedError) {
+    res.status(401).json({ error: error.name, message: error.message });
     return;
   }
 
