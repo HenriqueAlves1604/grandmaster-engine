@@ -1,9 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { DatabaseCleaner } from '@shared/infrastructure/database/DatabaseCleaner.js';
 import jwt from 'jsonwebtoken';
-import { execSync } from 'node:child_process';
 import request from 'supertest';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../../../../app.js';
 
 const prisma = new PrismaClient();
@@ -11,12 +10,6 @@ const prisma = new PrismaClient();
 describe('GET /api/v1/players/me (Integration)', () => {
   let validToken: string;
   let testPlayerId: string;
-
-  beforeAll(() => {
-    execSync('npx prisma db push --accept-data-loss', {
-      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL },
-    });
-  });
 
   beforeEach(async () => {
     // Wipe the database to guarantee idempotency
