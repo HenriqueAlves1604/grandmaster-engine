@@ -8,15 +8,16 @@ datasource db {
 }
 
 model Player {
-  id           String       @id @default(uuid()) @db.VarChar(36)
-  username     String       @unique @db.VarChar(50)
-  email        String       @unique @db.VarChar(255)
-  passwordHash String       @map("password_hash") @db.VarChar(255)
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  deletedAt    DateTime?    @map("deleted_at")
-  
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  username     String    @unique @db.VarChar(50)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
   stats        PlayerStats?
+  RefreshToken RefreshToken[]
 
   @@map("players")
 }
@@ -31,7 +32,19 @@ model PlayerStats {
   draws        Int      @default(0)
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
   @@map("player_stats")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  playerId  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
 }
