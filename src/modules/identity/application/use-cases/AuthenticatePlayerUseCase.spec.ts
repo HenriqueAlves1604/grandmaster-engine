@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Player } from '../../domain/entities/Player.js';
 import { InvalidCredentialsError } from '../../domain/errors/InvalidCredentialsError.js';
 import { InvalidEmailError } from '../../domain/errors/InvalidEmailError.js';
+import type { RefreshTokenRepositoryPort } from '../../domain/ports/RefreshTokenRepositoryPort.js';
 import type { TokenProviderPort } from '../../domain/ports/TokenProviderPort.js';
 import { FakePasswordHasher } from '../mocks/FakePasswordHasher.js';
 import { InMemoryPlayerRepository } from '../mocks/InMemoryPlayerRepository.js';
@@ -11,6 +12,7 @@ describe('AuthenticatePlayerUseCase', () => {
   let playerRepository: InMemoryPlayerRepository;
   let passwordHasher: FakePasswordHasher;
   let tokenProvider: TokenProviderPort;
+  let refreshTokenRepository: RefreshTokenRepositoryPort;
   let sut: AuthenticatePlayerUseCase;
 
   const validPassword = 'StrongPassword123!';
@@ -27,14 +29,25 @@ describe('AuthenticatePlayerUseCase', () => {
       verifyToken: vi.fn(),
     };
 
-    sut = new AuthenticatePlayerUseCase(playerRepository, passwordHasher, tokenProvider);
+    refreshTokenRepository = {
+      save: vi.fn().mockResolvedValue(undefined),
+      findByToken: vi.fn(),
+      deleteByToken: vi.fn(),
+      deleteAllByPlayerId: vi.fn(),
+    } as unknown as RefreshTokenRepositoryPort;
 
-    // Seed the in-memory repository with an existing player
+    sut = new AuthenticatePlayerUseCase(
+      playerRepository,
+      passwordHasher,
+      tokenProvider,
+      refreshTokenRepository,
+    );
+
     const player = Player.create('grandmaster', existingPlayerEmail, mockedHash);
     await playerRepository.save(player);
   });
 
-  it('should successfully authenticate with valid credentials', async () => {
+  it('should successfully authenticate with valid credentials and return both tokens', async () => {
     const request = {
       email: existingPlayerEmail,
       rawPassword: validPassword,
@@ -43,7 +56,9 @@ describe('AuthenticatePlayerUseCase', () => {
     const response = await sut.execute(request);
 
     expect(tokenProvider.generateToken).toHaveBeenCalledOnce();
+    expect(refreshTokenRepository.save).toHaveBeenCalledOnce();
     expect(response.token).toBe(mockedJwtToken);
+    expect(response.refreshToken).toBeDefined();
 
     expect(response.player.id).toBeDefined();
     expect(response.player.username).toBe('grandmaster');

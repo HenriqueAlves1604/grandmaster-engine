@@ -1,5 +1,7 @@
+import { RefreshToken } from '@modules/identity/domain/entities/RefreshToken.js';
 import type { PasswordHasherPort } from '@modules/identity/domain/ports/PasswordHasherPort.js';
 import type { PlayerRepositoryPort } from '@modules/identity/domain/ports/PlayerRepositoryPort.js';
+import type { RefreshTokenRepositoryPort } from '@modules/identity/domain/ports/RefreshTokenRepositoryPort.js';
 import { InvalidCredentialsError } from '../../domain/errors/InvalidCredentialsError.js';
 import type { TokenProviderPort } from '../../domain/ports/TokenProviderPort.js';
 import { Email } from '../../domain/value-objects/Email.js';
@@ -11,6 +13,7 @@ export interface AuthenticatePlayerRequestDTO {
 
 export interface AuthenticatePlayerResponseDTO {
   token: string;
+  refreshToken: string;
   player: {
     id: string;
     username: string;
@@ -22,20 +25,23 @@ export class AuthenticatePlayerUseCase {
   private playerRepository: PlayerRepositoryPort;
   private passwordHasher: PasswordHasherPort;
   private tokenProvider: TokenProviderPort;
+  private refreshTokenRepository: RefreshTokenRepositoryPort;
 
   constructor(
     playerRepository: PlayerRepositoryPort,
     passwordHasher: PasswordHasherPort,
     tokenProvider: TokenProviderPort,
+    refreshTokenRepository: RefreshTokenRepositoryPort,
   ) {
     this.playerRepository = playerRepository;
     this.passwordHasher = passwordHasher;
     this.tokenProvider = tokenProvider;
+    this.refreshTokenRepository = refreshTokenRepository;
   }
 
   /**
    * Orchestrates the authentication of a player.
-   * Returns a JWT and basic player info if successful, throws InvalidCredentialsError otherwise.
+   * Returns a short-lived JWT, a long-lived Refresh Token, and basic player info.
    */
   public async execute(
     request: AuthenticatePlayerRequestDTO,
@@ -59,13 +65,19 @@ export class AuthenticatePlayerUseCase {
       throw new InvalidCredentialsError();
     }
 
-    const token = this.tokenProvider.generateToken(
+    // Short-lived Access Token
+    const accessToken = this.tokenProvider.generateToken(
       { sub: playerSnapshot.id, username: playerSnapshot.username },
-      '24h',
+      '15m',
     );
 
+    // Long-lived Refresh Token
+    const refreshToken = RefreshToken.create(playerSnapshot.id);
+    await this.refreshTokenRepository.save(refreshToken);
+
     return {
-      token,
+      token: accessToken,
+      refreshToken: refreshToken.getSnapshot().token,
       player: {
         id: playerSnapshot.id,
         username: playerSnapshot.username,
