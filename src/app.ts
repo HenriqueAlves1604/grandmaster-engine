@@ -6,14 +6,14 @@ import { errorHandler } from './shared/infrastructure/http/middlewares/ErrorHand
 
 const app: Express = express();
 
-// 1. Built-in Middlewares
+// Built-in Middlewares
 app.use(express.json());
 
-// 2. Routes Registration
+// Routes Registration
 app.use('/api/v1/players', playerRouter);
 app.use('/api/v1/auth', authRouter);
 
-// 3. Global Error Handler
+// Global Error Handler
 app.use(errorHandler);
 
 export { app };
