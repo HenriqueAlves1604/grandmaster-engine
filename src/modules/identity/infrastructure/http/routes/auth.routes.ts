@@ -15,10 +15,13 @@ import { AuthenticatePlayerController } from '../controllers/AuthenticatePlayerC
 import { RefreshAccessTokenController } from '../controllers/RefreshAccessTokenController.js';
 
 // Adapters
+import { LogoutPlayerUseCase } from '@modules/identity/application/use-cases/LogoutPlayerUseCase.js';
 import { BcryptPasswordHasher } from '../../adapters/BcryptPasswordHasher.js';
 import { JwtTokenAdapter } from '../../adapters/JwtTokenAdapter.js';
 import { PrismaPlayerRepository } from '../../adapters/PrismaPlayerRepository.js';
 import { PrismaRefreshTokenRepository } from '../../adapters/PrismaRefreshTokenRepository.js';
+import { LogoutPlayerController } from '../controllers/LogoutPlayerController.js';
+import { logoutPlayerSchema } from '../schemas/logoutPlayerSchema.js';
 
 const authRouter: Router = Router();
 
@@ -38,17 +41,17 @@ const authenticatePlayerUseCase = new AuthenticatePlayerUseCase(
   tokenAdapter,
   refreshTokenRepository,
 );
-
 const refreshAccessTokenUseCase = new RefreshAccessTokenUseCase(
   playerRepository,
   refreshTokenRepository,
   tokenAdapter,
 );
+const logoutPlayerUseCase = new LogoutPlayerUseCase(refreshTokenRepository);
 
 // Controllers init
 const authenticatePlayerController = new AuthenticatePlayerController(authenticatePlayerUseCase);
-
 const refreshAccessTokenController = new RefreshAccessTokenController(refreshAccessTokenUseCase);
+const logoutPlayerController = new LogoutPlayerController(logoutPlayerUseCase);
 
 // Routes
 authRouter.post('/login', validate(authenticatePlayerSchema), authenticatePlayerController.handle);
@@ -58,5 +61,7 @@ authRouter.post(
   validate(refreshAccessTokenSchema),
   refreshAccessTokenController.handle,
 );
+
+authRouter.post('/logout', validate(logoutPlayerSchema), logoutPlayerController.handle);
 
 export { authRouter };
