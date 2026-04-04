@@ -1,6 +1,7 @@
-export class InvalidCredentialsError extends Error {
+import { ValidationError } from '@shared/errors/ValidationError.js';
+
+export class InvalidCredentialsError extends ValidationError {
   constructor() {
     super('Invalid email or password.');
-    this.name = 'InvalidCredentialsError';
   }
 }
