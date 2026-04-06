@@ -48,3 +48,12 @@ model RefreshToken {
 
   @@map("refresh_tokens")
 }
+
+model TimeControl {
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(50)
+  baseTimeSeconds  Int      @map("base_time_seconds")
+  incrementSeconds Int      @default(0) @map("increment_seconds")
+
+  @@map("time_controls")
+}
