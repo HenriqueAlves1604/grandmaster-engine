@@ -12,6 +12,11 @@ export class DatabaseCleaner {
     await prisma.refreshToken.deleteMany();
     await prisma.playerStats.deleteMany();
     await prisma.player.deleteMany();
+    // (TODO) await prisma.moves.deleteMany();
+    // (TODO) await prisma.matches.deleteMany();
+    // (TODO) await prisma.tournamentParticipant.deleteMany();
+    // (TODO) await prisma.tournament.deleteMany();
+    await prisma.timeControl.deleteMany();
   }
 
   /**
