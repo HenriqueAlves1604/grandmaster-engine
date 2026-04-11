@@ -10,11 +10,11 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
     ports:
-      - "${DB_PORT}:3306"
+      - '${DB_PORT}:3306'
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       timeout: 5s
       retries: 5
 
@@ -23,10 +23,18 @@ services:
     image: redis:7-alpine
     container_name: grandmaster-redis
     restart: always
+    # Enables Append Only File (AOF) for data durability.
+    # Ensures active games are not lost if the container crashes.
+    command: redis-server --appendonly yes
     ports:
-      - "6379:6379"
+      - '${REDIS_PORT:-6379}:6379'
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   mysql_data:
